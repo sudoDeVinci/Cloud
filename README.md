@@ -80,7 +80,7 @@ NOTE: The divisons in the bar graphs is an artifact from saving the graphs as pn
 
 #### Frequency Chart for High Res Images
 
-![BGR Frequency Chart for High Res Images](/Graphs/BGRBarGraph.png "BGR Frequency Chart for High Res Images")![BGR Frequency Chart for High Res Images](/Graphs/HSVBarGraph.png "BGR Frequency Chart for High Res Images")
+![BGR Frequency Chart for High Res Images](/Graphs/BGRBarGraph.png "BGR Frequency Chart for High Res Images")![HSV Frequency Chart for High Res Images](/Graphs/HSVBarGraph.png "BGR Frequency Chart for High Res Images")
 
 #### Frequency Chart for ESP Images
 

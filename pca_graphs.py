@@ -194,10 +194,10 @@ def main(Blocked, Reference, Graphs):
     sky_hsv_num = 1
     sky_bgr_num = 1
 
-    bgrBarPath = os.path.join(Graphs,'BGRPcaGraph-esp.png')
-    hsvBarPath = os.path.join(Graphs,'HSVPcaGraph-esp.png')
-    bgrScreePath = os.path.join(Graphs,'BGRScree-esp.png')
-    hsvScreePath = os.path.join(Graphs,'HSVScree-esp.png')
+    bgrBarPath = os.path.join(Graphs,'BGRPcaGraph.png')
+    hsvBarPath = os.path.join(Graphs,'HSVPcaGraph.png')
+    bgrScreePath = os.path.join(Graphs,'BGRScree.png')
+    hsvScreePath = os.path.join(Graphs,'HSVScree.png')
    
    # Scraping each image in our designated image folders
     for (refroot, _, referenceImages), (blockroot, _, blockedImages) in zip(os.walk(Reference), os.walk(Blocked)):
@@ -282,7 +282,7 @@ def main(Blocked, Reference, Graphs):
     """Calculate variance and labels"""
     print("> Creating BGR Screeplot ...")
     bgr_per_var = np.round(bgr_pca.explained_variance_ratio_*100, decimals=1)
-    bgr_labels = ["PC" + str(i) for i in range(1, len(bgr_per_var)+1)]
+    bgr_labels = ["red","green","blue"]
     plt.bar(x=range(1, len(bgr_per_var)+1), height = bgr_per_var, tick_label = bgr_labels)
     plt.ylabel('Variance percentage')
     plt.xlabel('Principle component')
@@ -293,7 +293,7 @@ def main(Blocked, Reference, Graphs):
 
     print("> Creating HSV Screeplot...")
     hsv_per_var = np.round(hsv_pca.explained_variance_ratio_*100, decimals=1)
-    hsv_labels = ["PC" + str(i) for i in range(1, len(hsv_per_var)+1)]
+    hsv_labels = ["value","saturation","hue"]
     plt.bar(x=range(1, len(hsv_per_var)+1), height = hsv_per_var, tick_label = hsv_labels)
     plt.ylabel('Variance percentage')
     plt.xlabel('Principle component')
@@ -339,12 +339,12 @@ def main(Blocked, Reference, Graphs):
 
     print("> Creating BGR PCA Scatterplot ...")
     _,ax = plt.subplots(figsize=(10,6))
-    ax.scatter(bgr_cloud_df.PC1,bgr_cloud_df.PC2, c = 'lightblue',alpha = 0.4,marker = 'X',label = 'Cloud BGR Value')
-    ax.scatter(bgr_sky_df.PC1,bgr_sky_df.PC2,c = 'red',alpha = 0.1,marker = 'o',label = 'Sky BGR Value')
+    ax.scatter(bgr_cloud_df.red,bgr_cloud_df.green, c = 'lightblue',alpha = 0.4,marker = 'X',label = 'Cloud BGR Value')
+    ax.scatter(bgr_sky_df.red,bgr_sky_df.green,c = 'red',alpha = 0.1,marker = 'o',label = 'Sky BGR Value')
     plt.legend(loc="upper left")
     plt.title('BGR PCA')
-    plt.xlabel('PC1 - {0}%'.format(bgr_per_var[0]))
-    plt.ylabel('PC2 - {0}%'.format(bgr_per_var[1]))
+    plt.xlabel('Red - {0}%'.format(bgr_per_var[0]))
+    plt.ylabel('Green - {0}%'.format(bgr_per_var[1]))
     plt.savefig(bgrBarPath)
     plt.clf
     print(" └ BGR Scatterplot created.")
@@ -357,12 +357,12 @@ def main(Blocked, Reference, Graphs):
 
     print("> Creating HSV PCA ScatterPlot ...")
     _,ax = plt.subplots(figsize=(10,6))
-    ax.scatter(hsv_cloud_df.PC1,hsv_cloud_df.PC2, c = 'lightblue',alpha = 0.4,marker = 'X',label = 'Cloud HSV Value')
-    ax.scatter(hsv_sky_df.PC1,hsv_sky_df.PC2,c = 'red',alpha = 0.1,marker = 'o',label = 'Sky HSV Value')
+    ax.scatter(hsv_cloud_df.value,hsv_cloud_df.saturation, c = 'lightblue',alpha = 0.4,marker = 'X',label = 'Cloud HSV Value')
+    ax.scatter(hsv_sky_df.value,hsv_sky_df.saturation,c = 'red',alpha = 0.1,marker = 'o',label = 'Sky HSV Value')
     plt.legend(loc="upper left")
     plt.title('HSV PCA')
-    plt.xlabel('PC1 - {0}%'.format(hsv_per_var[0]))
-    plt.ylabel('PC2 - {0}%'.format(hsv_per_var[1]))
+    plt.xlabel('Value - {0}%'.format(hsv_per_var[0]))
+    plt.ylabel('Saturation- {0}%'.format(hsv_per_var[1]))
     plt.savefig(hsvBarPath)
     plt.clf
     print(" └ HSV Screeplot created")
@@ -379,8 +379,8 @@ if __name__ == '__main__':
 
     start = datetime.now()
 
-    Blocked = r'Blocked-Images-esp'
-    Reference = r'Reference-Images-esp'
+    Blocked = r'Blocked-Images'
+    Reference = r'Reference-Images'
     Graphs = r"Graphs"
 
     if filesync(Blocked, Reference):
