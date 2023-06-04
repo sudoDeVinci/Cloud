@@ -6,6 +6,8 @@ The ability to track clouds currently is prohibitively expensive and inaccurate 
 "The MISR (Multi-angle Imaging SpectroRadiometer) instrument on the Terra satellite has been
 retrieving cloud motion vectors (CMVs) globally... in February 2012 the new MISR Level 2 Cloud product was publicly released, providing cloud motion vectors at 17.6 km resolution" [[1]](https://www-cdn.eumetsat.int/files/2020-04/pdf_conf_p60_s6_03_mueller_v.pdf). This resolution, speed of data access and prohibitive cost of current ground-based tools for cloud tracking result in no clear solutions for those who may need this data.
 
+The formal proposal made to VLSP can be viewed in the [Proposal](proposal.pdf)
+
 ### "What this is"
 
 This is a proof of concept for the ability to distinguish and accurately track Clouds using a fixed position esp32 camera, with processing done at a central server ie: a Windows desktop.
