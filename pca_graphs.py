@@ -16,7 +16,7 @@ from sklearn import preprocessing
 from datetime import datetime
 
 
-def read(Blocked, Reference, bgr_dict, hsv_dict, cloud_bgr_num, cloud_hsv_num, sky_bgr_num, sky_hsv_num):
+def read(Blocked:str, Reference:str, bgr_dict:dict, hsv_dict:dict, cloud_bgr_num:int, cloud_hsv_num:int, sky_bgr_num:int, sky_hsv_num:int) -> tuple[dict, dict, int, int, int, int]:
     """
     An assumption of this function is that all images are of the same size.
     As to not raise an error
@@ -130,7 +130,7 @@ def read(Blocked, Reference, bgr_dict, hsv_dict, cloud_bgr_num, cloud_hsv_num, s
     """
 
 
-    def readoutbgr(bgr, bgr_dict, bgr_num, indicator):
+    def readoutbgr(bgr, bgr_dict, bgr_num, indicator) -> tuple[dict, int]:
         b, g, r = bgr
         for x,y,z in zip(b,g,r):
             for i,o,u in zip(x,y,z):
@@ -142,7 +142,7 @@ def read(Blocked, Reference, bgr_dict, hsv_dict, cloud_bgr_num, cloud_hsv_num, s
         return bgr_dict, bgr_num
 
 
-    def readouthsv(hsv, hsv_dict, hsv_num, indicator):
+    def readouthsv(hsv, hsv_dict, hsv_num, indicator)-> tuple[dict, int]:
         h, s, v = hsv
         for x,y,z in zip(h,s,v):
             for i,o,u in zip(x,y,z):
@@ -167,7 +167,7 @@ def read(Blocked, Reference, bgr_dict, hsv_dict, cloud_bgr_num, cloud_hsv_num, s
 """
 Make sure filenames are synced before running
 """
-def filesync(Blocked, Reference):
+def filesync(Blocked:str, Reference:str) -> bool:
     for (_, _, referenceImages), (_, _, blockedImages) in zip(os.walk(Reference), os.walk(Blocked)):
         for refImage, blockedImage in zip(referenceImages, blockedImages):
             if refImage != blockedImage:
@@ -181,7 +181,7 @@ def filesync(Blocked, Reference):
 #---------------------------------------------------------------------------------------------------------#
 #---------------------------------------------------------------------------------------------------------#
 
-def main(Blocked, Reference, Graphs):
+def main(Blocked:str, Reference:str, Graphs:str) -> None:
     
     """
     I like to lay these things out one by one to allow for better 
