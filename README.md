@@ -11,8 +11,7 @@ The formal proposal made to VLSP can be viewed in the [Proposal](proposal.pdf)
 ### "What this is"
 
 This is a proof of concept for the ability to distinguish and accurately track Clouds using a fixed position esp32 camera, with processing done at a central server ie: a Windows desktop.
-In the current program state, the cloud base height can be recorded, however, the following proves
-the capability for simple image processing techniques to be used to track cloud movement, size and shadow cast onto the ground.
+In the current program state, the cloud base height can be recorded, however, the following proves the capability for simple image processing techniques to be used to track cloud movement, size and shadow cast onto the ground.
 
 ### Concept
 

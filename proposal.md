@@ -1,6 +1,13 @@
-# Background
+# Proposal for IoT Mesh Network Weather Monitoring System Proof of Concept
+- Tadj Cazaubon
+- Date: 22-05-2023
 
-Quick yet accurate Weather predication is imperative for certain industries to now only survive, but simply exist. An important factor of these is the ability to track, categorize and predict movements of clouds within a given area. Ceilometers use a laser/light source to determine a cloud's base or ceiling height. A  Ceilometer usually can also measure aerosol concentration in air [[1]](#1). The downside is that ceilometers have a relatively small area of measurement directly above the unit which would not be an issue, however, as of 2020 they can cost around USD $30 000 per unit [[3]](#3).
+## TLDR
+I propose to make a bunch of little weather stations with cameras to track clouds and weather conditions as a proof of concept. It's open source, modular and cheap, other systems cost USD 30K+, my proof of concept costs ~3900kr and will take me until end of July 2023.
+
+## Background
+
+Quick yet accurate weather predication is imperative for certain industries to not only operate, but simply exist. An important factor of these is the ability to track, categorize and predict movements of clouds within a given area. Ceilometers use a laser/light source to determine a cloud's base or ceiling height. A  Ceilometer usually can also measure aerosol concentration in air [[1]](#1). The downside is that ceilometers have a relatively small area of measurement directly above the unit, which would not be an issue, however, as of 2020 they can cost around USD $30 000 per unit [[3]](#3).
 
 There exists however, high quality satellite data mada available by NASA. The new MISR Level 2 Cloud product contains height-resolved, cloud motion vectors at 17.6 km resolution; cloud top heights at 1.1 km resolution; and cross-track cloud motion components at 1.1 km resolution [[2]](#2). Now this data is made available to be used by software engineers to visualize as needed. The issue? This data is not meant for real-time application on a  local area level. These products are made for global application, collecting data only on the sunlit side of earth over the course of 9 days [[4]](#4). 
 
@@ -10,12 +17,12 @@ A  better solution for the local-area level must be thought of then, to better p
 
 ## Proposal
 
-In the case of local cloud monitoring, what I propose as needed is real-time, modular, and open-source as to avoid contractual right to repair issues.
+In the case of local cloud monitoring, what I propose is needed is real-time, modular, and open-source as to avoid contractual right to repair issues.
 
 My plan is a mesh network comprised of simple esp32-based devices, equipped with a medium-resolution camera, hygrometer, altimeter, and gyroscope.
 
 I propose that with these devices, environmental readings and pictures of the sky can be transmitted to a central server in set time intervals for processing in essentially real-time. These measurements and images, in theory, can be used to determine cloud characteristics and movement in a way not done anywhere else. 
-This system can then by used in conjunction with existing systems to provide more accurate weather data for a local area.
+This system can then be used in conjunction with existing systems to provide more accurate weather data for a local area.
 
 
 ### Cloud Height
@@ -28,7 +35,7 @@ The lifted condensation level or lifting condensation level (LCL) is formally de
 
 ### Cloud Identification
 
-I have discovered it possible through a previous proof of concept, that it is theoretically possible to identify clouds from images of the sky, using only the visual colour space. In short, clouds are can be shown to be quite diffrent in their colour content from the surrounding sky or landmarks (obviously). This can be seen in the below graph, showing the differences in the BGR colour space of clouds vs the sky.
+I have discovered it possible through a previous proof of concept, that it is theoretically possible to identify clouds from images of the sky, using only the visual colour space. In short, clouds are can be shown to be quite different in their colour content from the surrounding sky or landmarks (obviously). This can be seen in the below graph, showing the differences in the BGR colour space of clouds vs the sky.
 
 <br>
 <br>
@@ -38,35 +45,43 @@ I have discovered it possible through a previous proof of concept, that it is th
 <br>
 <br>
 
+
+This separation can also be seen in the HSV color space, as shown below.
 <br>
 <br>
 
-This separation can also be seen in the HSV color space, as shown below.
 ![HSV Frequency Chart for High Res Images](/Graphs/HSVBarGraph.png "BGR Frequency Chart for High Res Images")
 ##### Figure showing frequency distribution in HSV colour channels of Sky versus Cloud Image set
 <br>
 <br>
 
+Using singular value decomposition, we can view each colour channel separately as a principle component. Here we can see that two of each of our channels can be used to separate the cloud vs sky pixel values. Scree plots showing these can be seen below.
 <br>
 <br>
 
-Using singular value decomposition, we can view each colour channel separaetly as a principle component. Here we can see that two of each of our channels can be used to separate the cloud vs sky pixel values. Scree plots showing these can be seen below.
-![BGR ScreePlot for High Res Images](/Graphs/BGRScree.png "BGR ScreePlot for High Res Images")![HSV ScreePlot for High Res Images](/Graphs/HSVScree.png "HSV ScreePlot for High Res Images")
+![BGR ScreePlot for High Res Images](/Graphs/BGRScree.png "BGR ScreePlot for High Res Images")!
+##### Figure showing ScreePlot of BGR colour channels in Sky versus Cloud Image set
+<br>
+<br>
+
+<br>
+<br>
+
+![HSV ScreePlot for High Res Images](/Graphs/HSVScree.png "HSV ScreePlot for High Res Images")
 ##### Figure showing ScreePlot of HSV colour channels in Sky versus Cloud Image set
 <br>
 <br>
 
 #### Cloud Type Identification
 
-This information then, can be used to train models identify the cloud type. If we are able to estimate the coud height, as well as having the environmental readings and a medium-resoltuion image, this should in theory be simple. 
-* (While this is usualy done while also using IR information to determine the cloud temperature, due to the fact camera will be pointing upwards, this is not an option.)
-
-I propose training a simple classification model using both this data. Once the model is able to classify the cloud type and state its position in the image, we can move onto assigning it a motion vector. 
+This information then, can be used to train AI models to identify the cloud type. If we are able to estimate the coud height, as well as having the environmental readings and a medium-resoltuion image, this should in theory be simple. 
+(While this is usualy done while also using IR information to determine the cloud temperature, due to the fact camera will be pointing upwards, this is not an option.)
+I propose training a simple classification model using this data. Once the model is able to classify the cloud type and state its position in the image, we can move onto assigning it a motion vector. 
 
 
 ### Cloud Movement Information
 
-Assigning motion vectors to identified clouds allows us to determine the direction, speed and size of the cloud formation.
+Assigning motion vectors to identified clouds allows us to determine the direction, speed and even size of the cloud formation.
 This is done after undistorting the image using the camera's intrinsic distortion matrix, then mapping the cloud image onto 3D space given the angle of the camera to the sky.
 A cloud's size can be assigned from the image. This is important not only to keep a record of for tracking weather changes, but also determining the future cloud shade on the ground.
 A motion vector can be assigned to a cloud by comparing two images taken within the set time interval.
