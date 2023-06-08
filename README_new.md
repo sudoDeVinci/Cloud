@@ -52,7 +52,7 @@ The [Listener.py](listener.py) script contains a simple web socket, listening fo
 
 The main crux of this project is the estimation of a cloud's size after it's pixel area has been selected. This is difficult with most camera's, as every camera has some intrinsic distortion, making accurate estimation of size and distance difficult. However, it is possible to calibrate our camera and undistort images captured with it. Since the angle of the camera is known to us (preferably 90), along with the approximate cloud base height, and the field of view of the camera, it is then possible to give an estimation of the total area of the cloud. This would also allow us, knowing the distance the cloud would travel across two frames at that particular height, to then assign a velocity vector to a cloud.
 
-### Cloud base height calculation
+### Cloud Base Height Calculation
 
 An important factor for cloud monitoring is obtaining the cloud base height. The cloud base is
 the lowest point of the visible portion of a cloud, usually expressed in meters above sea
@@ -79,6 +79,21 @@ In simple terms, all cameras have intrinsic and extrinsic characteristics which 
 This undstorted image can now be used for the mapping of 3D objects of known dimensions.
 
 If another lens was added such as a dome to the camera module, an extrinsic matrix for the lensing of that dome would be needed but trivial to adjust for.
+
+## Analysis
+
+### Image Quality Requirements
+
+While colour space based operations are fairly easy on high quality images, the OV2460 is not high quality. Contrast is low, over/under-exposure are almost ensured and ISO changes are not only drastic but cause unwanted light filtering and other strange behaviour. In all, while the camera is not exactly suited for this application, it is what is available and what I was able to test with. The shortcomings become apparent below.
+
+### Colorspace Frequency Histogram
+
+First is graphing the frequencies of the bgr and hsv values for clouds versus the sky surrounding them. This is done in [colour_graphs](colour_graphs.py).
+Each reference image in [Reference-Images](Reference-Images/) has a corresponding image in [Blocked-Images](Blocked-Images/). The Blocked out images are coloured such that clouds are coloured red and the sky is coloured black. Small borders around clouds are left as to not capture the noise of whispy cloud edges.
+This is used to create two binary images and subsequent masked images of the reference image, one for the clouds and one for the sky in the scene. These are split, iterated over and their colour values recorded. These values are then graphed and can viewed below.
+NOTE: The divisons in the bar graphs is an artifact from saving the graphs as pngs, as the pdf versions do not contain these.
+
+
 
 
 ## References
