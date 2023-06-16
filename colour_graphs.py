@@ -8,6 +8,7 @@ import os
 import gc
 import cv2
 import numpy as np
+from numba import jit
 from matplotlib import pyplot as plt
 from datetime import datetime
 
@@ -116,7 +117,7 @@ def read(Blocked, Reference, cloudBGR, skyBGR, cloudHSV, skyHSV):
 
     shsvch = cv2.split(skyImageHSV)
 
-
+    @jit(nopython=True, cache=True)
     def readoutbgr(bgr, nparray):
         b, g, r = bgr
         for x,y,z in zip(b,g,r):
@@ -128,6 +129,7 @@ def read(Blocked, Reference, cloudBGR, skyBGR, cloudHSV, skyHSV):
                         nparray[2][u] += 1
         return nparray
     
+    @jit(nopython=True, cache=True)
     def readouthsv(hsv, nparray):
         h, s, v = hsv
         for x,y,z in zip(h,s,v):

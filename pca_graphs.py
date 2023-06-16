@@ -10,7 +10,10 @@ from turtle import pd
 import cv2
 import numpy as np
 import pandas as pd
+from numba import jit
 from matplotlib import pyplot as plt
+from multiprocessing import Pipe
+from multiprocessing import Process
 from sklearn.decomposition import PCA 
 from sklearn import preprocessing
 from datetime import datetime
@@ -102,6 +105,9 @@ def read(Blocked:str, Reference:str, bgr_dict:dict, hsv_dict:dict, cloud_bgr_num
     del u_b_blackHSV 
     del l_b_blackHSV 
     del blackMaskHSV
+    del blockedImageHSV 
+    del referenceImage
+    del referenceImageHSV
     collect()
 
     #----------------------------------------------------------------------------------------------------#
@@ -120,6 +126,11 @@ def read(Blocked:str, Reference:str, bgr_dict:dict, hsv_dict:dict, cloud_bgr_num
 
     shsvch = cv2.split(skyImageHSV)
 
+    del cloudImageBGR
+    del skyImageBGR
+    del cloudImageHSV
+    del skyImageHSV
+    collect()
 
     """
     I save the values into the dictionaries a strings because for some reason when they
@@ -140,6 +151,7 @@ def read(Blocked:str, Reference:str, bgr_dict:dict, hsv_dict:dict, cloud_bgr_num
                         bgr_dict[pixel_num] = [str(i), str(o), str(u)]
                         bgr_num += 1
         return bgr_dict, bgr_num
+
 
 
     def readouthsv(hsv, hsv_dict, hsv_num, indicator)-> tuple[dict, int]:
@@ -194,10 +206,10 @@ def main(Blocked:str, Reference:str, Graphs:str) -> None:
     sky_hsv_num = 1
     sky_bgr_num = 1
 
-    bgrBarPath = os.path.join(Graphs,'BGRPcaGraph-esp.png')
-    hsvBarPath = os.path.join(Graphs,'HSVPcaGraph-esp.png')
-    bgrScreePath = os.path.join(Graphs,'BGRScree-esp.png')
-    hsvScreePath = os.path.join(Graphs,'HSVScree-esp.png')
+    bgrBarPath = os.path.join(Graphs,'BGRPcaGraph.png')
+    hsvBarPath = os.path.join(Graphs,'HSVPcaGraph.png')
+    bgrScreePath = os.path.join(Graphs,'BGRScree.png')
+    hsvScreePath = os.path.join(Graphs,'HSVScree.png')
    
    # Scraping each image in our designated image folders
     for (refroot, _, referenceImages), (blockroot, _, blockedImages) in zip(os.walk(Reference), os.walk(Blocked)):
@@ -230,20 +242,20 @@ def main(Blocked:str, Reference:str, Graphs:str) -> None:
     del sorted_hsv_dict
     collect()
 
+    def create_df(df: pd.DataFrame):
+        df.astype(float, errors='ignore', copy=False)  # Convert columns to float (numeric) type
+        df = df.T  # Transpose DataFrame
+        return df
+
     print("> Creating BGR dataframe ...")
-    bgr_df = pd.DataFrame(bgr_dict, index = ['b','g','r'])
-    bgr_df = bgr_df.apply(pd.to_numeric)
-    bgr_df = bgr_df.T
+    bgr_df = create_df(pd.DataFrame(bgr_dict, index=['b', 'g', 'r']))
     print(" └ BGR dataframe created.")
 
     print("> Creating HSV dataframe ...")
-    hsv_df = pd.DataFrame(hsv_dict, index = ['h','s','v'])
-    hsv_df = hsv_df.apply(pd.to_numeric)
-    hsv_df = hsv_df.T
+    hsv_df = create_df(pd.DataFrame(hsv_dict, index=['h', 's', 'v']))
     print(" └ HSV dataframe created.")
-    print("\n")
 
-
+    collect()
     #----------------------------------------------------------------------------------------------------#
     #----------------------------------------------------------------------------------------------------#
 
@@ -379,8 +391,8 @@ if __name__ == '__main__':
 
     start = datetime.now()
 
-    Blocked = r'Blocked-Images-esp'
-    Reference = r'Reference-Images-esp'
+    Blocked = r'Blocked-Images'
+    Reference = r'Reference-Images'
     Graphs = r"Graphs"
 
     if filesync(Blocked, Reference):
