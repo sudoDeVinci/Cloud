@@ -72,7 +72,7 @@ A more simple cloud height for most cumulus and cumulo-nimbus clouds can be foun
 
 ### Camera Calibration
 
-In simple terms, all cameras have intrinsic and extrinsic characteristics which induce image distortion. These can be expressed as matrices. Once found, we can induce a distortion matrix, and thusly, an image matrix to be applied to images to undo distortion. This is done via the openCV library and involves finding the position of known, measured object points in our distorted image and finding the transformations done to obtain our known measurements. In my case these are found in [calibration images](/calibration_images/), the code from which is mostly [from Nicolai Høirup Nielsen](https://github.com/niconielsen32) in his [ComputerVision](https://github.com/niconielsen32/ComputerVision) repository. An example below shows an example image and its undistorted form.
+In simple terms, all cameras have intrinsic and extrinsic characteristics which induce image distortion which can be expressed as matrices. Once found, we can induce a distortion matrix, and thusly, an image matrix to be applied to images to undo distortion. This is done via the openCV library and involves finding the position of known, measured object points in our distorted image and finding the transformations done to obtain our known measurements. In my case these are found in [calibration images](/calibration_images/), the code from which is mostly [from Nicolai Høirup Nielsen](https://github.com/niconielsen32) in his [ComputerVision](https://github.com/niconielsen32/ComputerVision) repository. An example below shows an example image and its undistorted form.
 
 ![Distorted image 4](calibration_images/img4.jpeg "Calibration image example")![Undistorted image 4](calibration_images/undistorted.png "Undistorted Image Example")
 
@@ -88,12 +88,18 @@ While colour space based operations are fairly easy on high quality images, the 
 
 ### Colorspace Frequency Histogram
 
-First is graphing the frequencies of the bgr and hsv values for clouds versus the sky surrounding them. This is done in [colour_graphs](colour_graphs.py).
+First is graphing the frequencies of the BGR and HSV values for clouds versus the sky surrounding them. This is done in [colour_graphs](colour_graphs.py).
 Each reference image in [Reference-Images](Reference-Images/) has a corresponding image in [Blocked-Images](Blocked-Images/). The Blocked out images are coloured such that clouds are coloured red and the sky is coloured black. Small borders around clouds are left as to not capture the noise of whispy cloud edges.
 This is used to create two binary images and subsequent masked images of the reference image, one for the clouds and one for the sky in the scene. These are split, iterated over and their colour values recorded. These values are then graphed and can viewed below.
 NOTE: The divisons in the bar graphs is an artifact from saving the graphs as pngs, as the pdf versions do not contain these.
 
+#### Frequency Chart for High Res Images
 
+![BGR Frequency Chart for High Res Images](/Graphs/BGRBarGraph.png "BGR Frequency Chart for High Res Images")![HSV Frequency Chart for High Res Images](/Graphs/HSVBarGraph.png "BGR Frequency Chart for High Res Images")
+
+#### Frequency Chart for ESP Images
+
+![BGR Frequency Chart for ESP Images](/Graphs/BGRBarGraph-esp.png "BGR Frequency Chart for ESP Images")![HSV Frequency Chart for ESP Images](/Graphs/HSVBarGraph-esp.png "HSV Frequency Chart for ESP Images")
 
 
 ## References
