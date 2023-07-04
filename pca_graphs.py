@@ -206,10 +206,10 @@ def main(Blocked:str, Reference:str, Graphs:str) -> None:
     sky_hsv_num = 1
     sky_bgr_num = 1
 
-    bgrBarPath = os.path.join(Graphs,'BGRPcaGraph.png')
-    hsvBarPath = os.path.join(Graphs,'HSVPcaGraph.png')
-    bgrScreePath = os.path.join(Graphs,'BGRScree.png')
-    hsvScreePath = os.path.join(Graphs,'HSVScree.png')
+    bgrBarPath = os.path.join(Graphs,'BGRPcaGraph-esp.png')
+    hsvBarPath = os.path.join(Graphs,'HSVPcaGraph-esp.png')
+    bgrScreePath = os.path.join(Graphs,'BGRScree-esp.png')
+    hsvScreePath = os.path.join(Graphs,'HSVScree-esp.png')
    
    # Scraping each image in our designated image folders
     for (refroot, _, referenceImages), (blockroot, _, blockedImages) in zip(os.walk(Reference), os.walk(Blocked)):
@@ -391,8 +391,8 @@ if __name__ == '__main__':
 
     start = datetime.now()
 
-    Blocked = r'Blocked-Images'
-    Reference = r'Reference-Images'
+    Blocked = r'Blocked-Images-esp'
+    Reference = r'Reference-Images-esp'
     Graphs = r"Graphs"
 
     if filesync(Blocked, Reference):
