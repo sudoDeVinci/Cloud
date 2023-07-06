@@ -269,7 +269,81 @@ def send_image(data):
 
 ### Listener Server
 
-The [Listener.py](listener.py) script contains a simple web socket, listening for connections on port 88.The server in this case is given a static IP for simplicity. Once a connection is made, the image and readings in CSV format are received. Readings and images are saved in folders labeled by date.
+The [Listener.py](listener.py) script contains a simple web socket, listening for connections on port 88. The server in this case is given a static IP for simplicity. 
+
+```python
+def main():
+    counter = find_count()
+    s = socket()
+    try:
+        # Try to let the socket address be reusable
+        s.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
+        try:
+            # Try to bind the socket to an address and port
+            s.bind(('',88))
+            s.listen(100)
+            # Listen, looping repeatedly
+            listen(s, counter)
+        except Exception as e:
+            print(e, "err")
+    except Exception as e:
+        print(e)
+        if s:
+            s.close()
+```
+
+Once a connection is made, the image data is received and saved with a timestamp
+
+```python
+c,a = s.accept()
+with Listener(c) as l:
+    print('Connection from {0}'.format(str(a)))
+    
+    datestamp = str(datetime.now().strftime("%Y%m%d"))
+    filename = f"img{counter}.png"
+    folder = datestamp
+    if not os.path.exists("espimages/"+folder):
+        os.mkdir("espimages/"+folder)
+
+    print("Receiving Image..")
+
+    try:
+        data = l.get()
+        if not data:
+            print("No Image received")
+        else:
+            print("Received")
+            with open("espimages/"+folder+"/"+filename, "wb") as f:
+                f.write(data)
+    except Exception as e:
+        print(e)
+```
+After this, the readings are received and saved with the same timestamp in .csv format.
+
+```python
+ filename = f"readings{datestamp}{counter}.csv"
+headers = ["altitude", "temp", "humidity", "dew_point"]
+
+try:
+    print("Receiving sensor data..")
+    data = l.get()
+    if not data:
+        print("No Sensor data received")
+    else:
+        print("Got Readings")
+        bytestring = data.decode('utf-8')
+        readings = bytestring.split("|")
+        print("Received", readings)
+        with open("espimages/"+folder+"/"+filename,  'w', encoding='UTF8', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(headers)
+            writer.writerow(readings)
+except Exception as e:
+    print(e, "err")
+    if s:
+        s.close()
+    raise e
+```
 
 
 ## Analysis
