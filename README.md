@@ -273,11 +273,13 @@ The [Listener.py](listener.py) script contains a simple web socket, listening fo
 
 
 ## Analysis
-<br>
 
 ### Image Quality Requirements
+While colour space based operations are fairly easy on high quality images, the OV2460 is not high quality. Contrast is low, over/under-exposure are almost ensured and ISO changes are not only drastic but cause unwanted light filtering and other strange behaviour:
 
-While colour space based operations are fairly easy on high quality images, the OV2460 is not high quality. Contrast is low, over/under-exposure are almost ensured and ISO changes are not only drastic but cause unwanted light filtering and other strange behaviour. In all, while the camera is not exactly suited for this application, it is what is available and what I was able to test with. The shortcomings become apparent below.
+![Example Image](espimages\20220704\img2022070443.png)
+
+In all, while the camera is not exactly suited for this application, it is what is available and what I was able to test with. The shortcomings become apparent below.
 
 ### Colourspace Frequency Histogram
 
