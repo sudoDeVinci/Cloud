@@ -1,11 +1,8 @@
 from gc import collect
 from time import sleep
 
-#SSID = "Asimov-2.4GHZ"         # Enter your WiFi name
-#PASSWORD = "Asimov42"     # Enter your WiFi password
-
 def server_start():
-    SSID = "ImageServer"         # Enter your WiFi name
+    SSID = "ImageServer"
     PASSWORD = "12345678"
     from network import WLAN, AP_IF
     
@@ -85,14 +82,11 @@ def send(s):
 def serve():
     wlan = server_start()
     from socket import SOL_SOCKET, SO_REUSEADDR, socket
-    from machine import reset
     s = socket()
 
     try:
         s.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
         try:
-            # Add try catch for OSError: [Errno 112] EADDRINUSE
-            # machine reset and call from main to loop
             s.bind(('',88))
             s.listen(100)
             send(s)
@@ -103,11 +97,6 @@ def serve():
             if s:
                 s.close()
             raise OSError
-        #wlan.disconnect()
-        #reset()
-        # Should be added to cumulative log file
-        #from machine import reset
-        #reset()
     except Exception as e:
         print(e)
         if s:

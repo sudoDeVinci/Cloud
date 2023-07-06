@@ -1,4 +1,5 @@
-# Cloud Detection & Tracking using the Visual Colour Space: Concept Exploration
+# Cloud Detection via Visual Colour Space: Concept Exploration using the OV2640
+- By: Tadj Cazauon (tc222gf)
 
 ## Proposal
 
@@ -21,6 +22,16 @@ movement and category.
 
 The formal proposal made to VLSP can be viewed in the [Proposal](proposal.pdf)
 
+<br>
+
+Due to the amorphous and feature-sparse nature of Clouds, tracking them via conventional image processing techniques such as via contours, frame-to-frame motion tracking and identifiable features allowing for conventional NN training, they are surprisingly difficult to autonomously track frame-to-frame.
+However, accurately tracking clouds may be as simple as identifying them via a statistical analysis of their colour values across multiple colour spaces. While object detection and identification is done via feature detection, usually on highly downscaled greyscale images,
+I believe identification of clouds could come down to BGR and HSV values.
+With the cloud base height, location and frame to frame motion of a cloud available to us, we can more accurately assign velocity vectors to cloud structures, along with the area of effect for their shadows on the ground.
+
+<br>
+
+The following is an exploration of this concept with a focus on the camera module. 
 
 ## Main Issues
 
@@ -28,15 +39,45 @@ The main issues with the implementation of this concept are:
 1. Camera fidelity
 2. Weather sensor Accuracy
 
-The following is an exploration of this concept with a focus on the camera module. 
 
 ## Setup
 
 An Esp32 with an OV2460 DVP camera module is pointed at the sky at a location and predetermined angle (prefereably perpendicular). A pycom board connects to a web server started on the esp32 and retrieves the image. The pycom board takes a number of measurements of the surroundings including the humidity, temperature, dew point and estimated cloud height. This information, along with the image is then sent back to a server listening for the pycom device.
-Due to the amorphous and feature-sparse nature of Clouds, tracking them via conventional image processing techniques such as via contours, frame-to-frame motion tracking and identifiable features allowing for conventional NN training, they are surprisingly difficult to autonomously track frame-to-frame.
-However, accurately tracking clouds may be as simple as identifying them via a statistical analysis of their colour values across multiple colour spaces. While object detection and identification is done via feature detection, usually on highly downscaled greyscale images,
-I believe identification of clouds could come down to BGR and HSV values.
-With the cloud base height, location and frame to frame motion of a cloud available to us, we can more accurately assign velocity vectors to cloud structures, along with the area of effect for their shadows on the ground.
+
+## How to
+
+All components are programmed using either python or micropython.
+
+I mostly use VScode for programming, however I use Thonny to update and interface with the boards.
+Sometimes however, I use [adafruit ampy](https://learn.adafruit.com/micropython-basics-load-files-and-run-code/install-ampy) for interfacing with the boards due to needing more complex operations, such as the [utility](/utility/) scripts.
+
+### ESP32 WROVER
+
+The ESP32 WROVER by Freenove was chosen simply because of availability and driver support for the DVP camera.
+The manufacturer repository for the board can be found [here](https://github.com/Freenove/Freenove_ESP32_WROVER_Board). Flashing the board can be done within minutes using [esptool](https://github.com/espressif/esptool) and the firmware can be found [here](https://github.com/Freenove/Freenove_ESP32_WROVER_Board/tree/main/Python/Python_Firmware).
+<br>
+
+Firmware flashing instructions via esptool can be found [here](https://micropython.org/download/esp32/), but the gist is:
+1. Install esptool using pip:
+```bash
+pip install esptool
+```
+
+2. Erase the existing flash memory on the chip:
+```
+esptool.py --chip esp32 --port <PORT> erase_flash
+```
+
+3. From then on program the firmware starting at address 0x1000:
+```
+esptool.py --chip esp32 --port <PORT> --baud 460800 write_flash -z 0x1000 <FIRMWARE .BIN>
+```
+
+### Pycom FiPy and PySense
+
+These should work out of the box, but may require additional drivers for the expansion board.
+
+A helpful guide for their installation can be found [here](https://docs.pycom.io/gettingstarted/software/drivers/).
 
 ## Usage
 
@@ -47,11 +88,184 @@ Usage can be broken down into the three components of the project, the:
 
 ### ESP32 Camera Board
 
-All files meant to be on the esp32 board are within the [esp32 folder](esp32/). [clear_lib](esp32/clear_lib.py) and [update_lib](esp32/update_lib.py) are simple scripts meant to clear and update the on-board lib folder respectively. The [main](esp32/main.py) simply calls [serve_image](esp32/serve_image.py). [serve_image](esp32/serve_image.py) activates turns on the on-board wifi and listens on port 80 for a request to connect. Once connected, it takes a picture and sends it to the connected socket.
+All files meant to be on the esp32 board are within the [esp32 folder](esp32/). [clear_lib](esp32/clear_lib.py) and [update_lib](esp32/update_lib.py) are simple scripts meant to clear and update the on-board lib folder respectively. The [main](esp32/main.py) simply calls [serve_image](esp32/serve_image.py). [serve_image](esp32/serve_image.py):
+
+1. Activates the on-board wifi 
+```python
+def server_start():
+    SSID = "ImageServer"
+    PASSWORD = "12345678"
+    from network import WLAN, AP_IF
+    
+    wlan = WLAN(AP_IF)
+    wlan.active(True)
+    wlan.config(essid = SSID, password = PASSWORD)
+    
+    conf = wlan.ifconfig()
+    print('Connected, IP address:', conf)
+    return wlan
+```
+2. Listens on port 80 for a request to connect.
+```python
+s = socket()
+
+try:
+    s.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
+    try:
+        s.bind(('',88))
+        s.listen(100)
+        send(s)
+        # sleep for 1 minute after sending
+        sleep(60000)
+    except Exception as e:
+        print(e, "err")
+        if s:
+            s.close()
+        raise OSError
+except Exception as e:
+    print(e)
+    if s:
+        s.close()
+    if wlan:
+        wlan.disconnect()
+```
+
+3. Send the image buffer contents over the socket connection. I have used a helper [Client class](client.py) to simplify the data transfer. The image buffer is rewritten twice to ensure it's flushed.
+```python
+from socket import socket
+def send(s:socket):
+    from struct import pack
+    from camera import deinit, capture
+    
+    while True: 
+        camera_init()
+        c,a = s.accept()
+        print('Connection from {0}'.format(a))
+        
+        buf = capture()
+        buf = capture()
+        buf = capture()
+
+        length = len(buf)
+        data = bytes(buf)
+        print("Sending Image data..")
+        
+        c.send(pack('<I',length))
+        c.sendall(data)
+        
+        print("Image sent.")
+        sleep(2)
+        del c,a, buf, length
+        deinit()
+        collect()
+```
 
 ### FiPy w/ Pysense Board
 
-All files meant to be on the FiPy board are within the [pycom folder](pycom/). [clear_lib](pycom/clear_lib.py) and [update_lib](pycom/update_lib.py) are simple scripts meant to clear and update the on-board lib folder respectively.The [main](pycom/main.py) simply calls the cycle function within [image_transfer](pycom/image_transfer.py). This runs a cycle of attempting to connect to the esp32 board, request an image, take readings and finally send the image to the desktop server on a different WiFi network.
+All files meant to be on the FiPy board are within the [pycom folder](pycom/). [clear_lib](pycom/clear_lib.py) and [update_lib](pycom/update_lib.py) are simple scripts meant to clear and update the on-board lib folder respectively.The [main](pycom/main.py) simply calls the cycle function within [image_transfer](pycom/image_transfer.py). This:
+
+1. Runs a cycle of attempting to connect to the esp32 board
+```python
+def connect(SSID, PASSWORD, wlan):
+    if PASSWORD is None:
+        wlan.connect(ssid=SSID)
+    else:
+        wlan.connect(SSID, auth=(WLAN.WPA2, PASSWORD))
+    print('connecting..',end='')
+    while not wlan.isconnected():
+        sleep(1)
+        print('.',end='')
+    print('Connected on:', wlan.ifconfig()[0])
+    return wlan.ifconfig()[3]
+```
+
+2. Receive an image.
+```python
+def get_image():
+    SSID = "ImageServer"
+    PASSWORD = None
+    wlan = WLAN(mode=WLAN.STA)
+    
+    ip = connect(SSID,PASSWORD,wlan)
+    sleep(1)
+    print("Requesting..")
+    from client import Listener
+    try:
+        with Listener(ip, 88) as c:
+            print("Receiving..")
+            data = c.get()
+            if not data:
+                print("No Image received")
+        wlan.disconnect()
+        del wlan, SSID, PASSWORD, c, ip
+        print("Received.")
+        collect()
+        return data
+```
+3. Take readings
+```python
+def readings():
+    from pysense import pysense
+    py = pysense()
+
+    temp = py.temperature()
+    humidity = py.humidity()
+    altitude = py.altitude()
+    dew_point = py.dew_point()
+    
+    readings = "{0}|{1}|{2}|{3}".format(altitude, temp, humidity, dew_point)
+
+    return bytes(readings.encode('utf-8'))
+```
+4. Send the image data to the desktop server on a different WiFi network. Images and readings are sent separately.
+
+```python
+def send_image(data):
+    SSID = "********"         
+    PASSWORD = "********"
+    wlan = WLAN(mode=WLAN.STA)
+
+    connect(SSID,PASSWORD,wlan)
+    
+    from socket import socket
+    import struct
+    sleep(1)
+    addr = "********"
+    port = 88
+    s = socket()
+    
+    try:
+        s.connect((addr,port))
+        sleep(1)
+
+        length = len(data)
+        print("Sending image data ...")
+        s.send(struct.pack('<I',length))
+        s.sendall(data)
+        print("Sent")
+        sleep(2)
+        
+        r = readings()
+        length = len(r)
+        print("Sending readings data...")
+        s.send(struct.pack('<I',length))
+        s.sendall(r)
+        sleep(2)
+        s.close()
+        print("Sent")
+        wlan.disconnect()
+        del wlan, length, r, s
+        collect()
+
+    except Exception as e:
+        if wlan:
+            wlan.disconnect()
+            del wlan
+        if s:
+            s.close()
+        print(e)
+        return None
+```
 
 ### Listener Server
 
@@ -59,8 +273,7 @@ The [Listener.py](listener.py) script contains a simple web socket, listening fo
 
 
 ## Analysis
-
-In the classification/separation of sky from cloud regions using two sets of three colour channels, 
+<br>
 
 ### Image Quality Requirements
 
@@ -154,6 +367,17 @@ Once a matrix of principle components (colour channels) and their per variance v
 ![BGR PCA ScatterPlot for ESPImages](/Graphs/BGRPcaGraph-esp.png "BGR PCA ScatterPlot for ESP Images")
 ![HSV PCA ScatterPlot for ESP Images](/Graphs/HSVPcaGraph-esp.png "HSV PCA ScatterPlot for ESP Images")
 
+### Final Comments
+
+- It can be seen that sky and cloud regions can be separated somewhat via visible colour space, and this separation simplified via singular value decomposition. The OV2640 however, can be seen to not be suitable for this application however; though following the statistical trends of the higher resolution images, it lacks the image quality/colour fidelity needed for this application.
+
+    - In the near future, the OV5640 must be tested, as this seems to be a large step in image quality, with quality of life features lacking in the OB2640, such as dynamically adjustable focus and ISO.
+
+- The communication between the Esp32 and FiPy is unneedingly convoluted. This is mainly because the FiPy requires the Pysense expansion bored for USB UART communication for programming. The pysense extension board lacks any headers for communication over something such as UART.
+
+    - Using the pysense expansion board was due to it having all the necessary sensors for the needed design, being cheaper than buying them separately. However, I have decided to instead use separate, more accurate sensors such as the SHT31-D and BMP390, connecting them over I2C to a single board.
+
+Over the course of the undertaking, the guiding philosophy was to create as close to a final implementation as possible within the time limit, creating many parts simultaneously, including transmission of weather values and camera distortion matrix calibration (available in [Extras](extras.md)). This unfocused approach made it difficult to fully test the capability of the camera to distinguish in cases of darker clouds, or during inconvenient weather conditions such as rain or the sun being in frame.
 
 ## References
 
@@ -172,11 +396,11 @@ resolution/ (accessed May 19, 2023).
 
 [5] “tlcl_rh_bolton,” Tlcl_rh_bolton,
 https://www.ncl.ucar.edu/Document/Functions/Contributed/tlcl_rh_bolton.shtml (accessed May
-21, 2023)
+21, 2023) (Extras)
 
 [6] Muñoz, Erith & Mundaray, Rafael & Falcon, Nelson. (2015). A Simplified Analytical Method
 to Calculate the Lifting Condensation Level from a Skew-T Log-P Chart. Avances en Ciencias e
-Ingenieria. 7. C124-C129
+Ingenieria. 7. C124-C129 (Extras)
 
 [7] Wmo, “Cumulonimbus,” International Cloud Atlas, https://cloudatlas.wmo.int/en/observation-
 of-clouds-from-aircraft-descriptions-cumulonimbus.html (accessed May 21, 2023)

@@ -4,6 +4,7 @@ from gc import collect
 
 
 # Connect to wifi networks, either open or secured.
+
 def connect(SSID, PASSWORD, wlan):
     if PASSWORD is None:
         wlan.connect(ssid=SSID)
@@ -70,8 +71,8 @@ def get_image():
 # Send image to listener server.
 def send_image(data):
     # Home network credentials
-    SSID = "Asimov-2.4GHZ"         
-    PASSWORD = "Asimov42"
+    SSID = "********"         
+    PASSWORD = "********"
     wlan = WLAN(mode=WLAN.STA)
     
     connect(SSID,PASSWORD,wlan)
@@ -83,7 +84,7 @@ def send_image(data):
     # Address hard-coded because I'm not saure how to otherwise
     # Configure it. In my original setting, the server would have simply
     # Sent it's details, with the fipy receiving via LTE.
-    addr = "192.168.0.103"
+    addr = "********"
     port = 88
     s = socket()
     
